@@ -1,5 +1,5 @@
 # 使用輕量級且較新穩定的 Nginx Alpine 映像（移除 perl 套件以減少攻擊面）
-FROM nginx:stable-alpine
+FROM nginx:1.28.0-alpine
 
 # 維護者資訊
 LABEL org.opencontainers.image.source="https://github.com/YOUR_USERNAME/YOUR_REPO"
@@ -21,6 +21,14 @@ RUN sed -i 's/listen\s*80;/listen 8080;/g' /etc/nginx/conf.d/default.conf && \
     sed -i '/user\s*nginx;/d' /etc/nginx/nginx.conf && \
     sed -i 's,/var/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf && \
     sed -i "/^http {/a \    proxy_temp_path /tmp/proxy_temp;\n    client_body_temp_path /tmp/client_temp;\n    fastcgi_temp_path /tmp/fastcgi_temp;\n    uwsgi_temp_path /tmp/uwsgi_temp;\n    scgi_temp_path /tmp/scgi_temp;\n" /etc/nginx/nginx.conf
+
+# 使用已釘選的 Alpine-based Nginx 以維持可重現性（不要在建置時升級套件）
+
+# 針對性升級有已知高/重大漏洞的套件（減少變更範圍）
+RUN apk update && apk add --no-cache --upgrade libxml2 libpng
+
+# 進一步針對 remaining MEDIUM 漏洞升級 busybox 與 c-ares
+RUN apk add --no-cache --upgrade busybox c-ares || true
 
 # 使用輕量級 Alpine 基底以減少攻擊面與套件數量
 
