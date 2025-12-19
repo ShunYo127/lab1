@@ -1,5 +1,5 @@
 # 使用輕量級且較新穩定的 Nginx Alpine 映像（移除 perl 套件以減少攻擊面）
-FROM nginx:stable-alpine
+FROM nginx:1.28.0
 
 # 維護者資訊
 LABEL org.opencontainers.image.source="https://github.com/YOUR_USERNAME/YOUR_REPO"
@@ -21,6 +21,13 @@ RUN sed -i 's/listen\s*80;/listen 8080;/g' /etc/nginx/conf.d/default.conf && \
     sed -i '/user\s*nginx;/d' /etc/nginx/nginx.conf && \
     sed -i 's,/var/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf && \
     sed -i "/^http {/a \    proxy_temp_path /tmp/proxy_temp;\n    client_body_temp_path /tmp/client_temp;\n    fastcgi_temp_path /tmp/fastcgi_temp;\n    uwsgi_temp_path /tmp/uwsgi_temp;\n    scgi_temp_path /tmp/scgi_temp;\n" /etc/nginx/nginx.conf
+
+# 針對性升級存在高/重大漏洞的系統套件以降低風險（僅升級，不安裝新套件）
+# 注意：這會使映像在每次重建時取得最新安全更新，可能影響可重現性
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --only-upgrade \
+        libxml2 libpng16-16 libaom3 zlib1g libxslt1.1 libtiff6 || true && \
+    rm -rf /var/lib/apt/lists/*
 
 # 暴露 8080 端口（非特權端口）
 EXPOSE 8080
