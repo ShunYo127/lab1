@@ -1,5 +1,5 @@
-# 使用輕量級的 Nginx Alpine 映像
-FROM nginx:alpine3.18-perl
+# 使用輕量級且較新穩定的 Nginx Alpine 映像（移除 perl 套件以減少攻擊面）
+FROM nginx:stable-alpine
 
 # 維護者資訊
 LABEL org.opencontainers.image.source="https://github.com/YOUR_USERNAME/YOUR_REPO"
